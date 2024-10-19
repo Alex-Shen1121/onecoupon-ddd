@@ -25,7 +25,6 @@ import java.util.Optional;
  * @Date 2024/10/19 - 02:54
  */
 @Slf4j
-@RestControllerAdvice
 public class GlobalExceptionHandler {
 
     /**
