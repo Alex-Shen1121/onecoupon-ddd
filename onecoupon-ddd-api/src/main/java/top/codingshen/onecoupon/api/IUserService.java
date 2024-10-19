@@ -1,5 +1,6 @@
 package top.codingshen.onecoupon.api;
 
+
 import top.codingshen.onecoupon.api.response.Response;
 
 /**
@@ -9,5 +10,7 @@ import top.codingshen.onecoupon.api.response.Response;
  * @Date 2024/10/20 - 02:22
  */
 public interface IUserService {
-    Response<Void> getUserCount();
+    Response<Integer> getUserCount();
+
+    Response<Integer> getUserCount2();
 }

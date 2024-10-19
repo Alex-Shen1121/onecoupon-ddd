@@ -11,10 +11,9 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import top.codingshen.onecoupon.api.response.Response;
 import top.codingshen.onecoupon.types.errorCode.BaseErrorCode;
 import top.codingshen.onecoupon.types.exception.AbstractException;
-import top.codingshen.onecoupon.types.result.Result;
-import top.codingshen.onecoupon.types.result.Results;
 
 import java.util.Optional;
 
@@ -25,6 +24,7 @@ import java.util.Optional;
  * @Date 2024/10/19 - 02:54
  */
 @Slf4j
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
     /**
@@ -32,24 +32,24 @@ public class GlobalExceptionHandler {
      */
     @SneakyThrows
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
-    public Result validExceptionHandler(HttpServletRequest request, MethodArgumentNotValidException ex) {
+    public Response validExceptionHandler(HttpServletRequest request, MethodArgumentNotValidException ex) {
         BindingResult bindingResult = ex.getBindingResult();
         FieldError firstFieldError = CollectionUtil.getFirst(bindingResult.getFieldErrors());
         String exceptionStr = Optional.ofNullable(firstFieldError)
                 .map(FieldError::getDefaultMessage)
                 .orElse(StringUtils.EMPTY);
         log.error("[{}] {} [ex] {}", request.getMethod(), getUrl(request), exceptionStr);
-        return Results.failure(BaseErrorCode.CLIENT_ERROR.code(), exceptionStr);
+        return Response.failure(BaseErrorCode.CLIENT_ERROR.code(), exceptionStr);
     }
 
     /**
      * 拦截应用内抛出的异常
      */
     @ExceptionHandler(value = {AbstractException.class})
-    public Result abstractException(HttpServletRequest request, AbstractException ex) {
+    public Response abstractException(HttpServletRequest request, AbstractException ex) {
         if (ex.getCause() != null) {
             log.error("[{}] {} [ex] {}", request.getMethod(), request.getRequestURL().toString(), ex, ex.getCause());
-            return Results.failure(ex);
+            return Response.failure(ex.getErrorCode(), ex.getMessage());
         }
         StringBuilder stackTraceBuilder = new StringBuilder();
         stackTraceBuilder.append(ex.getClass().getName()).append(": ").append(ex.getErrorMessage()).append("\n");
@@ -58,16 +58,16 @@ public class GlobalExceptionHandler {
             stackTraceBuilder.append("\tat ").append(stackTrace[i]).append("\n");
         }
         log.error("[{}] {} [ex] {} \n\n{}", request.getMethod(), request.getRequestURL().toString(), ex, stackTraceBuilder);
-        return Results.failure(ex);
+        return Response.failure(ex.getErrorCode(), ex.getMessage());
     }
 
     /**
      * 拦截未捕获异常
      */
     @ExceptionHandler(value = Throwable.class)
-    public Result defaultErrorHandler(HttpServletRequest request, Throwable throwable) {
+    public Response defaultErrorHandler(HttpServletRequest request, Throwable throwable) {
         log.error("[{}] {} ", request.getMethod(), getUrl(request), throwable);
-        return Results.failure();
+        return Response.failure();
     }
 
     private String getUrl(HttpServletRequest request) {

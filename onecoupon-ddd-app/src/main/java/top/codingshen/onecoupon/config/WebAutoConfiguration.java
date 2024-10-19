@@ -1,15 +1,19 @@
 package top.codingshen.onecoupon.config;
 
-import org.springframework.context.annotation.Bean;
-import top.codingshen.onecoupon.handler.GlobalExceptionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import top.codingshen.onecoupon.interceptor.LoggingInterceptor;
 
-public class WebAutoConfiguration {
+@Configuration
+public class WebAutoConfiguration implements WebMvcConfigurer {
 
-    /**
-     * 构建全局异常拦截器组件 Bean
-     */
-    @Bean
-    public GlobalExceptionHandler globalExceptionHandler() {
-        return new GlobalExceptionHandler();
+    @Autowired
+    private LoggingInterceptor loggingInterceptor;
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(loggingInterceptor);
     }
 }
